@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CDP Support Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .chat-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+    .chat-box {
+      height: 400px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #fafafa;
+    }
+    .message {
+      margin-bottom: 10px;
+    }
+    .user-message {
+      text-align: right;
+    }
+    .user-message span {
+      background-color: #007bff;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 12px;
+      display: inline-block;
+    }
+    .bot-message {
+      text-align: left;
+    }
+    .bot-message span {
+      background-color: #e9ecef;
+      color: #333;
+      padding: 8px 12px;
+      border-radius: 12px;
+      display: inline-block;
+    }
+    .input-box {
+      display: flex;
+    }
+    .input-box input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      outline: none;
+    }
+    .input-box button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+    .input-box button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>CDP Support Chatbot</h1>
+  <div class="chat-container">
+    <div class="chat-box" id="chat-box">
+      <!-- Chat messages will appear here -->
+      <div class="message bot-message">
+        <span>Hello! I'm your CDP support assistant. Ask me "how-to" questions about Segment, mParticle, Lytics, or Zeotap.</span>
+      </div>
+    </div>
+    <div class="input-box">
+      <input type="text" id="user-input" placeholder="Type your question here..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    // Predefined responses for "how-to" questions
+    const responses = {
+      "segment": {
+        "set up a new source": "To set up a new source in Segment, go to the Sources tab in your Segment workspace, click 'Add Source', and follow the instructions to connect your data source.",
+        "create a user profile": "To create a user profile in Segment, use the `identify` method in your Segment tracking code. This associates traits with a user.",
+      },
+      "mparticle": {
+        "create a user profile": "To create a user profile in mParticle, use the `identify` API to associate user attributes with a unique user ID.",
+        "build an audience segment": "To build an audience segment in mParticle, go to the Audiences tab, click 'Create Audience', and define your criteria.",
+      },
+      "lytics": {
+        "build an audience segment": "To build an audience segment in Lytics, go to the Audiences section, click 'Create Audience', and define your segmentation rules.",
+        "integrate data": "To integrate data in Lytics, use the Lytics API or one of the pre-built connectors to import data from your sources.",
+      },
+      "zeotap": {
+        "integrate data": "To integrate data with Zeotap, use the Zeotap API or SDK to connect your data sources and start syncing data.",
+        "create a user profile": "To create a user profile in Zeotap, use the `identify` method in the Zeotap SDK to associate user attributes with a unique ID.",
+      },
+    };
+
+    // Function to send a message
+    function sendMessage() {
+      const userInput = document.getElementById("user-input").value.trim();
+      if (userInput === "") return;
+
+      // Display user's message
+      const chatBox = document.getElementById("chat-box");
+      const userMessage = document.createElement("div");
+      userMessage.className = "message user-message";
+      userMessage.innerHTML = `<span>${userInput}</span>`;
+      chatBox.appendChild(userMessage);
+
+      // Clear input
+      document.getElementById("user-input").value = "";
+
+      // Generate bot's response
+      const botResponse = getBotResponse(userInput);
+      const botMessage = document.createElement("div");
+      botMessage.className = "message bot-message";
+      botMessage.innerHTML = `<span>${botResponse}</span>`;
+      chatBox.appendChild(botMessage);
+
+      // Scroll to the bottom of the chat box
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Function to generate bot's response
+    function getBotResponse(userInput) {
+      const input = userInput.toLowerCase();
+
+      // Check for CDP keywords
+      let cdp = "";
+      if (input.includes("segment")) {
+        cdp = "segment";
+      } else if (input.includes("mparticle")) {
+        cdp = "mparticle";
+      } else if (input.includes("lytics")) {
+        cdp = "lytics";
+      } else if (input.includes("zeotap")) {
+        cdp = "zeotap";
+      }
+
+      if (!cdp) {
+        return "I can only answer questions about Segment, mParticle, Lytics, or Zeotap. Please mention one of these platforms in your question.";
+      }
+
+      // Check for specific questions
+      for (const [question, answer] of Object.entries(responses[cdp])) {
+        if (input.includes(question)) {
+          return answer;
+        }
+      }
+
+      return `I'm sorry, I don't have an answer for that question about ${cdp}. Please try asking something else.`;
+    }
+
+    // Allow pressing Enter to send a message
+    document.getElementById("user-input").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>
