@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Sheets Clone</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .spreadsheet {
+      margin: 20px auto;
+      overflow-x: auto;
+    }
+    table {
+      border-collapse: collapse;
+      margin: 0 auto;
+    }
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      min-width: 100px;
+    }
+    th {
+      background-color: #f4f4f4;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      border: none;
+      outline: none;
+      text-align: center;
+    }
+    .formula-bar {
+      margin: 20px auto;
+      padding: 10px;
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      width: 80%;
+      max-width: 800px;
+    }
+    .formula-bar input {
+      width: 80%;
+      padding: 5px;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Google Sheets Clone</h1>
+  <div class="spreadsheet">
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <!-- Column Headers (A, B, C, ...) -->
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+          <th>D</th>
+          <th>E</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+  <div class="formula-bar">
+    <strong>Formula:</strong>
+    <input type="text" id="formula-input" placeholder="Enter formula (e.g., =SUM(A1:B2))" />
+  </div>
+
+  <script>
+    // Initialize the grid
+    const rows = 10;
+    const cols = 5;
+    let grid = createGrid(rows, cols);
+    let selectedCell = { row: null, col: null };
+
+    // Create an empty grid
+    function createGrid(rows, cols) {
+      const grid = [];
+      for (let i = 0; i < rows; i++) {
+        const row = [];
+        for (let j = 0; j < cols; j++) {
+          row.push({ value: "", formula: "" });
+        }
+        grid.push(row);
+      }
+      return grid;
+    }
+
+    // Render the grid
+    function renderGrid() {
+      const tbody = document.querySelector("tbody");
+      tbody.innerHTML = ""; // Clear existing rows
+
+      for (let i = 0; i < rows; i++) {
+        const tr = document.createElement("tr");
+        const th = document.createElement("th");
+        th.textContent = i + 1;
+        tr.appendChild(th);
+
+        for (let j = 0; j < cols; j++) {
+          const td = document.createElement("td");
+          const input = document.createElement("input");
+          input.type = "text";
+          input.value = grid[i][j].value;
+          input.addEventListener("input", (e) => handleCellChange(i, j, e.target.value));
+          input.addEventListener("focus", () => setSelectedCell(i, j));
+          td.appendChild(input);
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+    }
+
+    // Handle cell value changes
+    function handleCellChange(row, col, value) {
+      grid[row][col].value = value;
+      renderGrid();
+    }
+
+    // Handle formula input
+    const formulaInput = document.getElementById("formula-input");
+    formulaInput.addEventListener("input", (e) => {
+      if (selectedCell.row !== null && selectedCell.col !== null) {
+        const formula = e.target.value;
+        grid[selectedCell.row][selectedCell.col].formula = formula;
+        try {
+          grid[selectedCell.row][selectedCell.col].value = evalFormula(formula);
+        } catch (e) {
+          grid[selectedCell.row][selectedCell.col].value = "Error";
+        }
+        renderGrid();
+      }
+    });
+
+    // Evaluate formulas (basic support for SUM, AVERAGE, MAX, MIN, COUNT)
+    function evalFormula(formula) {
+      if (formula.startsWith("=")) {
+        const func = formula.slice(1).split("(")[0];
+        const range = formula.match(/\(([^)]+)\)/)[1];
+        const [start, end] = range.split(":").map((cell) => {
+          const [r, c] = cell.match(/[A-Z]+|\d+/g);
+          return { row: parseInt(r) - 1, col: columnToIndex(c) };
+        });
+
+        const values = [];
+        for (let r = start.row; r <= end.row; r++) {
+          for (let c = start.col; c <= end.col; c++) {
+            values.push(parseFloat(grid[r][c].value) || 0);
+          }
+        }
+
+        switch (func.toUpperCase()) {
+          case "SUM":
+            return values.reduce((acc, val) => acc + val, 0);
+          case "AVERAGE":
+            return values.reduce((acc, val) => acc + val, 0) / values.length;
+          case "MAX":
+            return Math.max(...values);
+          case "MIN":
+            return Math.min(...values);
+          case "COUNT":
+            return values.filter((val) => !isNaN(val)).length;
+          default:
+            return "Error";
+        }
+      }
+      return formula;
+    }
+
+    // Convert column letters to index (e.g., A -> 0, B -> 1)
+    function columnToIndex(col) {
+      return col.split("").reduce((acc, char) => acc * 26 + char.charCodeAt(0) - 64, 0) - 1;
+    }
+
+    // Set the selected cell
+    function setSelectedCell(row, col) {
+      selectedCell = { row, col };
+      formulaInput.value = grid[row][col].formula;
+    }
+
+    // Initial render
+    renderGrid();
+  </script>
+</body>
+</html>
